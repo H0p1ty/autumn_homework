@@ -1,56 +1,4 @@
-#include <iostream>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-#include <stdexcept>
-#include <concepts>
-
-// concept to check if the type is printable
-template <typename CustomType>
-concept printable = requires(CustomType a) {
-  std::cout << a;
-};
-
-// concept to check if the type is considered to be
-// a number atleast within a ring
-template <typename CustomType>
-concept comparable_and_addible = requires(CustomType a, CustomType b) {
-    a + b;
-    a - b;
-    a += b;
-    a -= b;
-    a < b;
-    a <= b;
-    a == b;
-    a >= b;
-    a > b;
-    a != b;
-};
-
-
-template<printable CustomType>
-struct Edge {
-    CustomType from;
-    CustomType to;
-};
-
-template <printable CustomType>
-std::istream& operator>>(std::istream& is, Edge<CustomType>& edge) {
-    std::cin >> edge.from >> edge.to;
-    return is;
-}
-
-template<printable CustomType, comparable_and_addible CustomWeight>
-struct WeightedEdge : public Edge<CustomType> {
-    CustomWeight weight;
-};
-
-template <printable CustomType, comparable_and_addible CustomWeight>
-std::istream& operator>>(std::istream& is,
-    WeightedEdge<CustomType, CustomWeight>& weighted_edge) {
-    std::cin >> weighted_edge.from >> weighted_edge.to >> weighted_edge.weight;
-    return is;
-}
+#include "containers.hpp"
 
 
 // this graph uses unordered_map as a container, which allows to be
@@ -71,7 +19,7 @@ class WeightedUnorientedGraph : public CombinedGraph {
             std::vector<WeightedEdge<CustomType, CustomWeight>>& wedge_initialization_vector);
     protected:
         virtual void add_to_adjacency_map(WeightedEdge<CustomType, CustomWeight>& wedge,
-            std::unordered_set<CustomType>& vertices_set);
+            std::unordered_map<CustomType>& vertices_set);
         void initialize(
             std::vector<WeightedEdge<CustomType, CustomWeight>>& wedge_initialization_vector);
         std::unordered_map<CustomType, std::unordered_map<CustomType, CustomWeight>> adjacency_map;
@@ -81,7 +29,7 @@ template <printable CustomType, comparable_and_addible CustomWeight>
 class WeightedOrientedGraph : public WeightedUnorientedGraph<CustomType, CustomWeight> {
     protected:
         void add_to_adjacency_map(WeightedEdge<CustomType, CustomWeight>& wedge,
-            std::unordered_set<CustomType>& vertices_set) override;
+            std::unordered_map<CustomType>& vertices_set) override;
 };
 
 template <printable CustomType>
@@ -92,7 +40,7 @@ class UnweightedUnorientedGraph : public CombinedGraph {
             std::vector<Edge<CustomType>>& edge_initialization_vector);
     protected:
         virtual void add_to_adjacency_map(
-            Edge<CustomType>& edge, std::unordered_set<CustomType>& vertices_set);
+            Edge<CustomType>& edge, std::unordered_map<CustomType>& vertices_set);
         void initialize(
             std::vector<Edge<CustomType>>& edge_initialization_vector);
         std::unordered_map<CustomType, std::unordered_map<CustomType, bool>> adjacency_map;
@@ -102,17 +50,16 @@ template <printable CustomType>
 class UnweightedOrientedGraph : public UnweightedUnorientedGraph<CustomType> {
     protected:
         void add_to_adjacency_map(Edge<CustomType>& edge,
-            std::unordered_set<CustomType>& vertices_set) override;
+            std::unordered_map<CustomType>& vertices_set) override;
 };
 
-template <printable CustomType, comparable_and_addible CustomWeight>
 void WeightedUnorientedGraph<CustomType, CustomWeight>::add_to_adjacency_map(
-    WeightedEdge<CustomType, CustomWeight>& wedge, std::unordered_set<CustomType>& vertices_set
+    WeightedEdge<CustomType, CustomWeight>& wedge, std::unordered_map<CustomType>& vertices_set
 ) {
     vertices_set.insert(wedge.from);
     vertices_set.insert(wedge.to); // vertices_set.insert(from, to);
-    adjacency_map[wedge.from][wedge.to] = wedge.weight;
-    adjacency_map[wedge.to][wedge.from] = wedge.weight;
+    adjacency_map[wedge.from][wedge.to] = weight;
+    adjacency_map[wedge.to][wedge.from] = weight;
 }
 
 template <printable CustomType, comparable_and_addible CustomWeight>
@@ -149,16 +96,16 @@ WeightedUnorientedGraph<CustomType, CustomWeight>::WeightedUnorientedGraph(
 
 template <printable CustomType, comparable_and_addible CustomWeight>
 void WeightedOrientedGraph<CustomType, CustomWeight>::add_to_adjacency_map(
-    WeightedEdge<CustomType, CustomWeight>& wedge, std::unordered_set<CustomType>& vertices_set
+    WeightedEdge<CustomType, CustomWeight>& wedge, unordered_set<CustomType>& vertices_set
 ) {
     vertices_set.insert(wedge.from);
     vertices_set.insert(wedge.to); // vertices_set.insert(from, to);
-    adjacency_map[wedge.from][wedge.to] = wedge.weight;
+    adjacency_map[wedge.from][wedge.to] = weight;
 }
 
 template <printable CustomType>
 void UnweightedUnorientedGraph<CustomType>::add_to_adjacency_map(
-    Edge<CustomType>& edge, std::unordered_set<CustomType>& vertices_set) {
+    Edge<CustomType>& edge, std::unordered_map<CustomType>& vertices_set) {
     vertices_set.insert(edge.from);
     vertices_set.insert(edge.to); // vertices_set.insert(from, to);
     adjacency_map[edge.from][edge.to] = true;
@@ -195,7 +142,7 @@ UnweightedUnorientedGraph<CustomType>::UnweightedUnorientedGraph(
 
 template <printable CustomType>
 void UnweightedOrientedGraph<CustomType>::add_to_adjacency_map(
-    Edge<CustomType>& edge, std::unordered_set<CustomType>& vertices_set) {
+    Edge<CustomType>& edge, std::unordered_map<CustomType>& vertices_set) {
     vertices_set.insert(edge.from);
     vertices_set.insert(edge.to); // vertices_set.insert(from, to);
     adjacency_map[edge.from][edge.to] = true;
